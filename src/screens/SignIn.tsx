@@ -1,3 +1,5 @@
+import { Controller, useForm } from 'react-hook-form'
+import { useNavigation } from '@react-navigation/native'
 import {
   Center,
   Heading,
@@ -6,13 +8,15 @@ import {
   Text,
   VStack,
 } from '@gluestack-ui/themed'
-import { Controller, useForm } from 'react-hook-form'
+
 import BackgroundImg from '@assets/background.png'
 import Logo from '@assets/logo.svg'
+
 import { Input } from '@components/Input'
 import { Button } from '@components/Button'
-import { useNavigation } from '@react-navigation/native'
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
+
+import { useAuth } from '@hooks/useAuth'
 
 type FormData = {
   email: string
@@ -22,6 +26,8 @@ type FormData = {
 export function SignIn() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>()
 
+  const { singIn } = useAuth()
+
   const {
     control,
     handleSubmit,
@@ -29,7 +35,7 @@ export function SignIn() {
   } = useForm<FormData>()
 
   function handleSignIn({ email, password }: FormData) {
-    console.log(email, password)
+    singIn(email, password)
   }
 
   return (
