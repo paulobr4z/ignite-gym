@@ -16,8 +16,15 @@ import Logo from '@assets/logo.svg'
 import { Input } from '@components/Input'
 import { Button } from '@components/Button'
 
+type FormDataProps = {
+  name: string
+  email: string
+  password: string
+  passwordConfirm: string
+}
+
 export function SignUp() {
-  const { control, handleSubmit } = useForm()
+  const { control, handleSubmit } = useForm<FormDataProps>()
 
   const navigation = useNavigation()
 
@@ -25,8 +32,13 @@ export function SignUp() {
     navigation.goBack()
   }
 
-  function handleSignUp(data: any) {
-    console.log({ data })
+  function handleSignUp({
+    name,
+    email,
+    password,
+    passwordConfirm,
+  }: FormDataProps) {
+    console.log({ name, email, password, passwordConfirm })
   }
 
   return (
@@ -97,7 +109,7 @@ export function SignUp() {
 
             <Controller
               control={control}
-              name="password_confirm"
+              name="passwordConfirm"
               render={({ field: { onChange, value } }) => (
                 <Input
                   placeholder="Confirmar a Senha"
