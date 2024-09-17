@@ -26,7 +26,14 @@ export function Input({
         h="$14"
         borderWidth="$0"
         borderRadius="$md"
-        $focus={{ borderWidth: 1, borderColor: '$green500' }}
+        $focus={{
+          borderWidth: 1,
+          borderColor: invalid ? '$red500' : '$green500',
+        }}
+        $invalid={{
+          borderWidth: 1,
+          borderColor: '$red500',
+        }}
         isReadOnly={isReadOnly}
         opacity={isReadOnly ? 0.5 : 1}
       >
