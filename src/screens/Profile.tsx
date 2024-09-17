@@ -4,7 +4,7 @@ import { Input } from '@components/Input'
 import { ScreenHeader } from '@components/ScreenHeader'
 import { UserPhoto } from '@components/UserPhoto'
 import { Center, Heading, Text, VStack } from '@gluestack-ui/themed'
-import { ScrollView, TouchableOpacity } from 'react-native'
+import { Alert, ScrollView, TouchableOpacity } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system'
 
@@ -12,25 +12,35 @@ export function Profile() {
   const [userPhoto, setUserPhoto] = useState('https://github.com/paulobr4z.png')
 
   async function handleUserPhotoSelect() {
-    const photoSelected = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      aspect: [4, 4],
-      allowsEditing: true,
-    })
+    try {
+      const photoSelected = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        aspect: [4, 4],
+        allowsEditing: true,
+      })
 
-    if (photoSelected.canceled) {
-      return
-    }
-
-    const photoUri = photoSelected.assets[0].uri
-
-    if (photoUri) {
-      const photoInfo = (await FileSystem.getInfoAsync(photoUri)) as {
-        size: number
+      if (photoSelected.canceled) {
+        return
       }
 
-      setUserPhoto(photoSelected.assets[0].uri)
+      const photoUri = photoSelected.assets[0].uri
+
+      if (photoUri) {
+        const photoInfo = (await FileSystem.getInfoAsync(photoUri)) as {
+          size: number
+        }
+
+        if (photoInfo.size && photoInfo.size / 1024 / 1024 > 5) {
+          return Alert.alert(
+            'Essa imagem é muito grande. Escolha uma de até 5MB',
+          )
+        }
+
+        setUserPhoto(photoSelected.assets[0].uri)
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
