@@ -1,8 +1,8 @@
 /* eslint-disable no-useless-catch */
-import { createContext, ReactNode, useState } from 'react'
+import { createContext, ReactNode, useEffect, useState } from 'react'
 import { UserDTO } from '@dtos/UserDTO'
 import { api } from '@services/api'
-import { storageUserSave } from '@storage/storageUser'
+import { storageUserGet, storageUserSave } from '@storage/storageUser'
 
 export type AuthContextDataProps = {
   user: UserDTO
@@ -20,6 +20,8 @@ export const AuthContext = createContext<AuthContextDataProps>(
 export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<UserDTO>({} as UserDTO)
 
+  console.log({ user })
+
   async function singIn(email: string, password: string) {
     try {
       const { data } = await api.post('/sessions', { email, password })
@@ -32,6 +34,16 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       throw error
     }
   }
+
+  async function loadUserData() {
+    const userLogged = await storageUserGet()
+    if (userLogged) {
+      setUser(userLogged)
+    }
+  }
+  useEffect(() => {
+    loadUserData()
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, singIn }}>
