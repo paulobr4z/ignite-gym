@@ -7,16 +7,20 @@ import {
   ScrollView,
   Text,
   VStack,
+  useToast,
 } from '@gluestack-ui/themed'
 
 import BackgroundImg from '@assets/background.png'
 import Logo from '@assets/logo.svg'
 
-import { Input } from '@components/Input'
-import { Button } from '@components/Button'
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
 
+import { Input } from '@components/Input'
+import { Button } from '@components/Button'
+import { AppError } from '@utils/AppError'
+
 import { useAuth } from '@hooks/useAuth'
+import { ToastMessage } from '@components/ToastMessage'
 
 type FormData = {
   email: string
@@ -28,6 +32,8 @@ export function SignIn() {
 
   const { singIn } = useAuth()
 
+  const toast = useToast()
+
   const {
     control,
     handleSubmit,
@@ -35,7 +41,28 @@ export function SignIn() {
   } = useForm<FormData>()
 
   async function handleSignIn({ email, password }: FormData) {
-    await singIn(email, password)
+    try {
+      await singIn(email, password)
+    } catch (error) {
+      const isAppError = error instanceof AppError
+
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível entrar. Tente novamente mais tarde.'
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="error"
+            title="Messagem"
+            description={title}
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    }
   }
 
   return (
