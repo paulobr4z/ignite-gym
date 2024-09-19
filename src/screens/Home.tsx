@@ -1,11 +1,16 @@
+import { useState, useEffect } from 'react'
+import { FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { Heading, HStack, Text, useToast, VStack } from '@gluestack-ui/themed'
+
 import { ExerciseCard } from '@components/ExerciseCard'
 import { Group } from '@components/Group'
 import { HomeHeader } from '@components/HomeHeader'
-import { Heading, HStack, Text, VStack } from '@gluestack-ui/themed'
-import { useNavigation } from '@react-navigation/native'
+import { ToastMessage } from '@components/ToastMessage'
+
 import { AppNavigatorRoutesProps } from '@routes/app.routes'
-import { useState } from 'react'
-import { FlatList } from 'react-native'
+import { AppError } from '@utils/AppError'
+import { api } from '@services/api'
 
 export function Home() {
   const [exercises, setExercises] = useState([
@@ -14,14 +19,44 @@ export function Home() {
     'Remada unilateral',
     'Levantamento terra',
   ])
-  const [groups, setGroups] = useState(['Costas', 'Bíceps', 'Tríceps', 'Ombro'])
+  const [groups, setGroups] = useState<string[]>([])
   const [groupSelected, setGroupSelected] = useState('costas')
 
   const navigation = useNavigation<AppNavigatorRoutesProps>()
 
+  const toast = useToast()
+
   function handleOpenExerciseDetails() {
     navigation.navigate('exercise')
   }
+
+  async function fetchGroups() {
+    try {
+      const response = await api.get('/groups')
+      setGroups(response.data)
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível carregar os grupos musculares'
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="error"
+            title="Messagem"
+            description={title}
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    }
+  }
+  useEffect(() => {
+    fetchGroups()
+  }, [])
 
   return (
     <VStack flex={1}>
