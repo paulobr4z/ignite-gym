@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { useForm, Controller } from 'react-hook-form'
 import {
@@ -19,10 +20,11 @@ import { Button } from '@components/Button'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { api } from '@services/api'
-import axios from 'axios'
-import { Alert } from 'react-native'
 import { AppError } from '@utils/AppError'
 import { ToastMessage } from '@components/ToastMessage'
+
+import { useAuth } from '@hooks/useAuth'
+import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
 
 type FormDataProps = {
   name: string
@@ -45,7 +47,11 @@ const signUpSchema = yup.object({
 })
 
 export function SignUp() {
+  const [isLoading, setIsLoading] = useState(false)
+
   const toast = useToast()
+
+  const { singIn } = useAuth()
 
   const {
     control,
@@ -55,7 +61,7 @@ export function SignUp() {
     resolver: yupResolver(signUpSchema),
   })
 
-  const navigation = useNavigation()
+  const navigation = useNavigation<AuthNavigatorRoutesProps>()
 
   function handleGoBack() {
     navigation.goBack()
@@ -63,8 +69,11 @@ export function SignUp() {
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
-      const response = await api.post('/users', { name, email, password })
-      console.log(response.data)
+      setIsLoading(true)
+
+      await api.post('/users', { name, email, password })
+
+      await singIn(email, password)
     } catch (error) {
       console.log({ error })
 
@@ -86,6 +95,8 @@ export function SignUp() {
           />
         ),
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -177,10 +188,16 @@ export function SignUp() {
             <Button
               title="Criar e acessar"
               onPress={handleSubmit(handleSignUp)}
+              isLoading={isLoading}
             />
           </Center>
 
-          <Button title="Voltar para o login" variant="outline" mt="$12" />
+          <Button
+            onPress={() => navigation.navigate('signIn')}
+            title="Voltar para o login"
+            variant="outline"
+            mt="$12"
+          />
         </VStack>
       </VStack>
     </ScrollView>
