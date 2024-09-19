@@ -9,16 +9,12 @@ import { HomeHeader } from '@components/HomeHeader'
 import { ToastMessage } from '@components/ToastMessage'
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes'
-import { AppError } from '@utils/AppError'
 import { api } from '@services/api'
+import { AppError } from '@utils/AppError'
+import { ExerciseDTO } from '@dtos/ExerciseDTO'
 
 export function Home() {
-  const [exercises, setExercises] = useState([
-    'Puxada frontal',
-    'Remada curvada',
-    'Remada unilateral',
-    'Levantamento terra',
-  ])
+  const [exercises, setExercises] = useState<ExerciseDTO[]>([])
   const [groups, setGroups] = useState<string[]>([])
   const [groupSelected, setGroupSelected] = useState('costas')
 
@@ -58,7 +54,8 @@ export function Home() {
   async function fecthExercisesByGroup() {
     try {
       const response = await api.get(`/exercises/bygroup/${groupSelected}`)
-      console.log(response.data)
+
+      setExercises(response.data)
     } catch (error) {
       const isAppError = error instanceof AppError
       const title = isAppError
@@ -121,7 +118,7 @@ export function Home() {
         </HStack>
         <FlatList
           data={exercises}
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => item.id}
           renderItem={() => (
             <ExerciseCard onPress={handleOpenExerciseDetails} />
           )}
