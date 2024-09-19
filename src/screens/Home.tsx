@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FlatList } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { Heading, HStack, Text, useToast, VStack } from '@gluestack-ui/themed'
 
 import { ExerciseCard } from '@components/ExerciseCard'
@@ -54,9 +54,41 @@ export function Home() {
       })
     }
   }
+
+  async function fecthExercisesByGroup() {
+    try {
+      const response = await api.get(`/exercises/bygroup/${groupSelected}`)
+      console.log(response.data)
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível carregar os exercícios'
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="error"
+            title="Messagem"
+            description={title}
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    }
+  }
+
   useEffect(() => {
     fetchGroups()
   }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      fecthExercisesByGroup()
+    }, [groupSelected]),
+  )
 
   return (
     <VStack flex={1}>
