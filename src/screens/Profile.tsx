@@ -12,6 +12,8 @@ import { useAuth } from '@hooks/useAuth'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { api } from '@services/api'
+import { AppError } from '@utils/AppError'
 
 type FormDataProps = {
   name: string
@@ -44,11 +46,13 @@ const profileSchema = yup.object({
 })
 
 export function Profile() {
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [photoIsLoading, setPhotoIsLoading] = useState(false)
   const [userPhoto, setUserPhoto] = useState('https://github.com/paulobr4z.png')
 
   const toast = useToast()
 
-  const { user } = useAuth()
+  const { user, updateUserProfile } = useAuth()
 
   const {
     control,
@@ -105,7 +109,49 @@ export function Profile() {
   }
 
   async function handleProfileUpdate(data: FormDataProps) {
-    console.log(data)
+    try {
+      setIsUpdating(true)
+
+      const userUpdated = user
+      userUpdated.name = data.name
+
+      await api.put('/users', data)
+
+      await updateUserProfile(userUpdated)
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="success"
+            title="Messagem"
+            description="Perfil atualizado com sucesso!"
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível atualizar os dados. Tente novamente mais tarde.'
+
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="error"
+            title="Messagem"
+            description={title}
+            onClose={() => toast.close(id)}
+          />
+        ),
+      })
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   return (
@@ -217,6 +263,7 @@ export function Profile() {
             <Button
               title="Atualizar"
               onPress={handleSubmit(handleProfileUpdate)}
+              isLoading={isUpdating}
             />
           </Center>
         </Center>
