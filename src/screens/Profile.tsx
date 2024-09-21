@@ -4,15 +4,34 @@ import { Input } from '@components/Input'
 import { ScreenHeader } from '@components/ScreenHeader'
 import { UserPhoto } from '@components/UserPhoto'
 import { Center, Heading, Text, useToast, VStack } from '@gluestack-ui/themed'
-import { Alert, ScrollView, TouchableOpacity } from 'react-native'
+import { ScrollView, TouchableOpacity } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system'
 import { ToastMessage } from '@components/ToastMessage'
+import { useAuth } from '@hooks/useAuth'
+import { Controller, useForm } from 'react-hook-form'
+
+type FormDataProps = {
+  name: string
+  email: string
+  password: string
+  oldPassword: string
+  newPassword: string
+}
 
 export function Profile() {
   const [userPhoto, setUserPhoto] = useState('https://github.com/paulobr4z.png')
 
   const toast = useToast()
+
+  const { user } = useAuth()
+
+  const { control } = useForm<FormDataProps>({
+    defaultValues: {
+      name: user.name,
+      email: user.email,
+    },
+  })
 
   async function handleUserPhotoSelect() {
     try {
@@ -81,8 +100,31 @@ export function Profile() {
           </TouchableOpacity>
 
           <Center w="$full" gap="$4">
-            <Input placeholder="Nome" bg="$gray600" />
-            <Input value="paulo@email.com" bg="$gray600" isReadOnly />
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  bg="$gray600"
+                  placeholder="Nome"
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  bg="$gray600"
+                  placeholder="E-mail"
+                  isReadOnly
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
           </Center>
 
           <Heading
